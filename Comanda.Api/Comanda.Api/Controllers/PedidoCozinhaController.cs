@@ -1,4 +1,5 @@
-﻿using Comanda.Api.Models;
+﻿using Comanda.Api.DTOs;
+using Comanda.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -9,59 +10,97 @@ namespace Comanda.Api.Controllers
     [ApiController]
     public class PedidoCozinhaController : ControllerBase
     {
-        static List<PedidoCozinha> pedidosCozinha = new List<PedidoCozinha>() 
-        { 
-        new PedidoCozinha()
+        public readonly ComandasDBContext _context;
+        public PedidoCozinhaController (ComandasDBContext context)
         {
-            Id = 1,
-            ComandaId = 1
-        },
-        new PedidoCozinha()
-        {
-            Id = 2,
-            ComandaId = 2
+            _context = context;
         }
-    };
 
         // GET: api/<PedidoController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IResult Get()
         {
-            return new string[] { "value1", "value2" };
+            return Results.Ok(_context.PedidoCozinhas.ToList());
         }
 
         // GET api/<PedidoController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IResult GetResult(int id)
         {
-            return "value";
+            var pedido = _context.PedidoCozinhas.FirstOrDefault(p => p.Id == id);
+            if (pedido is null)
+                return Results.NotFound($"Pedido {id} não encontrado!");
+
+            return Results.Ok(pedido);
         }
 
         // POST api/<PedidoController>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public IResult Post([FromBody] PedidoCozinhaCreateRequest pedidoCreate)
         {
+            if (pedidoCreate.Itens == null || !pedidoCreate.Itens.Any())
+                return Results.BadRequest("O pedido deve conter ao menos um item.");
+            if (pedidoCreate.ComandaId <= 0)
+                return Results.BadRequest("ComandaId inválido.");
+
+            var pedido = new PedidoCozinha
+            {
+                ComandaId = pedidoCreate.ComandaId,
+            };
+
+            //Cria a lista dos itens do pedido
+            var itens = new List<PedidoCozinhaItem>();
+            foreach (var item in pedidoCreate.Itens)
+            {
+                var pedidoItem = new PedidoCozinhaItem
+                {
+                    ComandaItemId = item.ComandaItemId,
+                };
+                itens.Add(pedidoItem);
+            }
+
+            pedido.Itens = itens;
+
+            return Results.Created($"/api/pedidoCozinha/{pedido.Id}", pedido);
+
         }
 
         // PUT api/<PedidoController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public IResult Put(int id, [FromBody]PedidoCozinhaUpdateRequest pedidoUpdate)
         {
+            // Localiza o pedido pelo ID
+            var pedido = _context.PedidoCozinhas.FirstOrDefault(p => p.Id == id);
+            if (pedido is null)
+                return Results.NotFound($"Pedido {id} não encontrado!");
+
+            // Validações
+            if (pedidoUpdate.Itens == null || !pedidoUpdate.Itens.Any())
+                return Results.BadRequest("O pedido deve conter ao menos um item.");
+
+            // Atualiza os campos do pedido
+            pedido.ComandaId = pedidoUpdate.ComandaId;
+
+            _context.SaveChanges();
+
+            // Retorna sem conteúdo (204)
+            return Results.NoContent();
         }
 
         // DELETE api/<PedidoController>/5
         [HttpDelete("{id}")]
         public IResult Delete(int id)
         {
-            var pedido = pedidosCozinha
+            var pedido = _context.PedidoCozinhas
                 .FirstOrDefault(p => p.Id == id);
 
             if (pedido is null)
                 return Results.NotFound($"Pedido {id} não encontrado!");
 
-            var pedidoRemovido = pedidosCozinha.Remove(pedido);
+            _context.PedidoCozinhas.Remove(pedido);
+            var pedidoRemovido = _context.SaveChanges();
 
-            if (pedidoRemovido)
+            if (pedidoRemovido >0)
                 return Results.NoContent();
 
             return Results.StatusCode(500);

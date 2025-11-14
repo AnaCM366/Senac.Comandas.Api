@@ -11,69 +11,94 @@ namespace Comanda.Api.Controllers
     [ApiController]
     public class MesaController : ControllerBase
     {
-        static List<Mesa> mesas = new List<Mesa>()
+        private readonly ComandasDBContext _context;
+        public MesaController(ComandasDBContext context)
         {
-            new Mesa
-            {
-                Id = 1,
-                NumeroMesa = 1,
-                SituacaoMesa = (int)SituacaoMesa.Livre
-            },
-            new Mesa
-            {
-                Id = 2,
-                NumeroMesa = 2,
-                SituacaoMesa = (int)SituacaoMesa.Ocupada
-
-            }
-        };
+            _context = context;
+        }
 
         // GET: api/<MesaController>
         [HttpGet]
         public IResult GetMesa()
         {
-            return Results.Ok(mesas);
+            return Results.Ok(_context.Mesas.ToList());
         }
 
         // GET api/<MesaController>/5
         [HttpGet("{id}")]
         public IResult Get(int id)
         {
-            var mesa = mesas.FirstOrDefault(m => m.Id == id);
-            if (mesa is null)
+            var mesa = _context.Mesas.FirstOrDefault(m => m.Id == id);
+            if (mesa == null)
             {
                 return Results.NotFound("Mesa não encontrada!");
             }
-            return Results.Ok(mesas);
+            return Results.Ok(_context.Mesas);
         }
 
         // POST api/<MesaController>
         [HttpPost]
-        public void Post([FromBody] MesaCreateRequest mesaCreate)
+        public IResult Post([FromBody] MesaCreateRequest mesaCreate)
         {
+            // Validações
+            if (mesaCreate.NumeroMesa <= 0)
+                return Results.BadRequest("O número da mesa deve ser maior que zero.");
 
+            // Criar uma nova mesa
+            var novaMesa = new Mesa
+            {
+                NumeroMesa = mesaCreate.NumeroMesa,
+                SituacaoMesa = 0 
+            };
+
+            // Adiciona a nova mesa na lista
+            _context.Mesas.Add(novaMesa);
+            _context.SaveChanges();
+
+            // Retorna a nova mesa criada e o codigo 201 CREATED
+            return Results.Created($"/api/mesa/{novaMesa.Id}", novaMesa);
         }
 
         // PUT api/<MesaController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] MesaUpdateRequest mesaUpdate)
+        public IResult Put(int id, [FromBody] MesaUpdateRequest mesaUpdate)
         {
+            // Localiza pelo ID
+            var mesa = _context.Mesas.FirstOrDefault(m => m.Id == id);
+            if (mesa is null)
+                return Results.NotFound($"Mesa {id} não encontrada!");
 
+            // Validações
+            if (mesaUpdate.NumeroMesa <= 0)
+                return Results.BadRequest("O número da mesa deve ser maior que zero.");
+            if (mesaUpdate.SituacaoMesa < 0 || mesaUpdate.SituacaoMesa > 2)
+                return Results.BadRequest("Situação da mesa inválida.");
+
+            // Atualiza os dados
+            mesa.NumeroMesa = mesaUpdate.NumeroMesa;
+            mesa.SituacaoMesa = mesaUpdate.SituacaoMesa;
+
+            // Retorno sem conteudo
+            return Results.NoContent();
         }
 
         // DELETE api/<MesaController>/5
         [HttpDelete("{id}")]
         public IResult Delete(int id)
         {
-            var mesa = mesas
-                .FirstOrDefault(m => m.Id == id);
+            // Localiza pelo ID
+            var mesa = _context.Mesas.FirstOrDefault(m => m.Id == id);
 
+            // Retorna não encontrado se for null (404)
             if (mesa is null)
                 return Results.NotFound($"Cardápio {id} não encontrado!");
 
-            var mesaRemovida = mesas.Remove(mesa);
+            // Remove a mesa
+            _context.Mesas.Remove(mesa);
+            var mesaRemovida = _context.SaveChanges();
 
-            if (mesaRemovida)
+            // Retorna sem conteudo (204)
+            if (mesaRemovida>0)
                 return Results.NoContent();
 
             return Results.StatusCode(500);

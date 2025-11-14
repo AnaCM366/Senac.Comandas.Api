@@ -15,6 +15,7 @@ namespace Comanda.Api
                 .HasData(
                 new Models.Usuario
                 {
+                    Id = 1,
                     Nome = "Admin",
                     Email = "admin@admin.com",
                     Senha = "admin123"

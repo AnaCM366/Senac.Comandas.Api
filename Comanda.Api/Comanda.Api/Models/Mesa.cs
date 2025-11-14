@@ -15,6 +15,6 @@ namespace Comanda.Api.Models
     {
         Livre = 0,
         Ocupada = 1,
-        Reservado = 3
+        Reservado = 2
     }
 }

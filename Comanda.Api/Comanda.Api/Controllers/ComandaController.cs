@@ -18,16 +18,21 @@ namespace Comanda.Api.Controllers
 
         // GET: api/<ComandaController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IResult Get()
         {
-            return new string[] { "value1", "value2" };
+            return Results.Ok(_context.Comandas.ToList());
         }
 
         // GET api/<ComandaController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IResult Get(int id)
         {
-            return "value";
+            var comanda = _context.Comandas
+                .FirstOrDefault(c => c.Id == id);
+            if (comanda is null)
+                return Results.NotFound("Comanda não encontrada");
+
+            return Results.Ok(comanda);
         }
 
         // POST api/<ComandaController>
@@ -60,8 +65,8 @@ namespace Comanda.Api.Controllers
                 comandaItens.Add(comandaItem);
 
                 var cardapioItem = _context.CardapioItems
-                    .FirstOrDefault(ci => ci.Id == comandaItem.CardapioItemId);
-                if (cardapioItem != null && cardapioItem.PossuiPreparo)
+                    .FirstOrDefault(c => c.Id == cardapioItemId);
+                if (cardapioItem!.PossuiPreparo)
                 {
                     var pedido = new PedidoCozinha
                     {
@@ -79,7 +84,22 @@ namespace Comanda.Api.Controllers
             }
 
             // atribui os itens a nota comanda
-                novacomanda.Itens = comandaItens;
+             novacomanda.Itens = comandaItens;
+            _context.Comandas.Add(novacomanda);
+            _context.SaveChanges();
+
+            var response = new ComandaCreateResponse
+            {
+                Id = novacomanda.Id,
+                NomeCliente = novacomanda.NomeCliente,
+                NumeroMesa = novacomanda.NumeroMesa,
+                Itens = comandaItens.Select(ci => new ComandaItemResponse
+                {
+                    Id = ci.Id,
+                    Titulo = _context.CardapioItems.First(c => c.Id == ci.CardapioItemId).Titulo
+                }).ToList()
+            };
+
             // adiciona a nova comanda na lista de comandas
             return Results.Created($"/api/comanda/{novacomanda.Id}", novacomanda);
         }
@@ -104,8 +124,47 @@ namespace Comanda.Api.Controllers
             comanda.NomeCliente = comandaUpdate.NomeCliente;
             comanda.NumeroMesa = comandaUpdate.NumeroMesa;
 
+            // percorrendo a lista de itens
+            foreach(var item in comandaUpdate.Itens)
+            {
+                // se id for informado e remover for verdadeiro
+                if(item.Id > 0 && item.Remove == true)
+                {
+                    RemoverItemComanda(item.Id);
+                }
+                // se cardaitemid foi informado
+                if (item.CardapioItemId > 0)
+                {
+                    InserirItemComanda(comanda, item.CardapioItemId);
+                }
+            }
+
+            _context.SaveChanges();
+
             // retorna 204 Sem conteudo
             return Results.NoContent();
+        }
+
+        private void InserirItemComanda(Models.Comanda comandaid, int cardapioItemId)
+        {
+            _context.ComandaItems.Add(
+                new ComandaItem
+                {
+                    CardapioItemId = cardapioItemId,
+                    Comanda = comandaid
+                }
+            );
+        }
+
+        private void RemoverItemComanda(int id)
+        {
+            // consulta o item da comanda pelo id
+            var comandaItem = _context.ComandaItems.FirstOrDefault(ci => ci.Id == id);
+            if (comandaItem is not null)
+            {
+                // remove o item da comanda
+                _context.ComandaItems.Remove(comandaItem);
+            }
         }
 
         // DELETE api/<ComandaController>/5
