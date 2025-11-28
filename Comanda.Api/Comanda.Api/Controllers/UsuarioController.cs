@@ -46,6 +46,11 @@ namespace Comanda.Api.Controllers
                 return Results.BadRequest("O nome deve ter no mínimo 3 caracteres.");
             if (usuarioCreate.Email.Length < 5 || !usuarioCreate.Email.Contains("@"))
                 return Results.BadRequest("O email deve ser válido.");
+            
+            var emailExistente = _context.Usuarios
+                .FirstOrDefault(u => u.Email == usuarioCreate.Email);
+            if (emailExistente is not null)
+                return Results.BadRequest("O email já está em uso.");
 
             var usuario = new Usuario
             {
@@ -106,6 +111,24 @@ namespace Comanda.Api.Controllers
                 return Results.NoContent();
 
             return Results.StatusCode(500);
+        }
+
+        // criar metodo de login
+        // POST api/usuario/login
+        // { "email": "rafael@hotmail.com", "senha": "123" }
+        [HttpPost("login")]
+        public IResult Login([FromBody] LoginRequest loginRequest)
+        {
+            var usuario = _context.Usuarios
+                 .FirstOrDefault(u =>
+                    u.Email == loginRequest.email
+                 && u.Senha == loginRequest.senha);
+
+            // 401
+            if (usuario is null)
+                return Results.Unauthorized();
+            // 200
+            return Results.Ok("Usuário autenticado");
         }
     }
 }
