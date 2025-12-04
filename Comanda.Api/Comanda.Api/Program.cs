@@ -26,6 +26,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// criar o banco de dados
+// criar um escopo usado para obter instancias de variaveis
+using(var scope = app.Services.CreateScope())
+{
+    // obtem um objeto do banco de dados 
+    var db = scope.ServiceProvider.GetRequiredService<ComandasDBContext>();
+    // executa  as migrations no banco de dados
+    await db.Database.MigrateAsync();
+}
+
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
