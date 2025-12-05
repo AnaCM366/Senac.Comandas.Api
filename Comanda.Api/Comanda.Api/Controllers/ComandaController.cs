@@ -20,7 +20,22 @@ namespace Comanda.Api.Controllers
         [HttpGet]
         public IResult Get()
         {
-            return Results.Ok(_context.Comandas.ToList());
+            var comandas = _context.Comandas
+                .Select(c => new ComandaCreateResponse
+                {
+                    Id = c.Id,
+                    NomeCliente = c.NomeCliente,
+                    NumeroMesa = c.NumeroMesa,
+                    Itens = c.Itens.Select(i => new ComandaItemResponse
+                    {
+                        Id = i.Id,
+                        Titulo = _context.CardapioItems
+                        .First(ci => ci.Id == i.CardapioItemId).Titulo
+                    }).ToList()
+                }).ToList();
+
+
+            return Results.Ok(comandas);
         }
 
         // GET api/<ComandaController>/5
@@ -28,6 +43,18 @@ namespace Comanda.Api.Controllers
         public IResult Get(int id)
         {
             var comanda = _context.Comandas
+                .Select(c => new ComandaCreateResponse
+                {
+                    Id = c.Id,
+                    NomeCliente = c.NomeCliente,
+                    NumeroMesa = c.NumeroMesa,
+                    Itens = c.Itens.Select(i => new ComandaItemResponse
+                    {
+                        Id = i.Id,
+                        Titulo = _context.CardapioItems
+                    .First(ci => ci.Id == i.CardapioItemId).Titulo
+                    }).ToList()
+                 })
                 .FirstOrDefault(c => c.Id == id);
             if (comanda is null)
                 return Results.NotFound("Comanda não encontrada");
