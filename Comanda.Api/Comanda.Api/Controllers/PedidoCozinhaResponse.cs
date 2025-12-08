@@ -1,4 +1,4 @@
-﻿namespace Comanda.Api.DTOs
+﻿namespace Comanda.Api.Controllers
 {
     public class PedidoCozinhaResponse
     {

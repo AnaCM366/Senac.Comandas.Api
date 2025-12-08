@@ -20,7 +20,7 @@ namespace Comanda.Api.Controllers
         [HttpGet]
         public IResult Get()
         {
-            var pedidos = _dbContext.PedidoCozinhas
+            var pedidos = _context.PedidoCozinhas
                 .Select(p => new PedidoCozinhaResponse
                 {
                     Id = p.Id,
@@ -29,8 +29,8 @@ namespace Comanda.Api.Controllers
                     {
                         Id = pi.Id,
                         Titulo =
-                                _dbContext.CardapioItems
-                            .First(ci => ci.Id == _dbContext.ComandaItens
+                                _context.CardapioItems
+                            .First(ci => ci.Id == _context.ComandaItems
                                                         .First(ci => ci.Id == pi.ComandaItemId).CardapioItemId
                                                         ).Titulo
 
