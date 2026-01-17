@@ -12,7 +12,7 @@ namespace Comanda.Api.Controllers
     [ApiController] // DEFINE QUE ESSA CLASSE É UM CONTROLADOR DE API
     public class CardapioItemController : ControllerBase // HERDA DE CONTROLLERBASE para PODER RESPONDER A REQUISICOES HTTP
     {
-        public ComandasDBContext _context { get; set; }
+        private readonly ComandasDBContext _context;
         public CardapioItemController(ComandasDBContext context)
         {
             _context = context;
@@ -25,7 +25,7 @@ namespace Comanda.Api.Controllers
         {
             var cardapios = _context.CardapioItems.Include(c => c.CategoriaCardapio).ToList();
             // CRIA UMA LISTA ESTATICA DE CARDAPIO E TRANSFORMA EM JSON
-            return Results.Ok(cardapios);
+            return Results.Ok(_context.CardapioItems.ToList());
         }
 
 

@@ -2,7 +2,7 @@
 {
     public class ComandaUpdateRequest
     {
-        public string NomeCliente { get; set; } = default!;
+        public string NomeCliente { get; set; }
         public int NumeroMesa { get; set; }
 
         public ComandaItemUpdateRequest[] Itens { get; set; } = [];

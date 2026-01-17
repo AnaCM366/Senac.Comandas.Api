@@ -145,7 +145,9 @@ namespace Comanda.Api.Controllers
             var mesa = await _context.Mesas
                 .FirstOrDefaultAsync(m => m.NumeroMesa == reserva.NumeroMesa);
             if (mesa is null)
+            {
                 return BadRequest("Mesa não encontrada.");
+            }
 
             // atualizar a mesa para livre
             mesa.SituacaoMesa = (int)SituacaoMesa.Livre; // (int) converte o enum para int

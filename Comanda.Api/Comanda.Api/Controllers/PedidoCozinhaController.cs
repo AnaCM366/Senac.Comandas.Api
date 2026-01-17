@@ -36,7 +36,7 @@ namespace Comanda.Api.Controllers
 
                     }),
                 }).ToList();
-            return Results.Ok(_context.PedidoCozinhas.ToList());
+            return Results.Ok(pedidos);
         }
 
         // GET api/<PedidoController>/5

@@ -31,7 +31,6 @@ namespace Comanda.Api
                         Titulo = "Coxinha",
                         Descricao = "Coxinha de frango com catupiry",
                         Preco = 6.50m,
-                        PossuiPreparo = true
                     },
                     new Models.CardapioItem
                     {
@@ -39,7 +38,6 @@ namespace Comanda.Api
                         Titulo = "Refrigerante",
                         Descricao = "Refrigerante lata 350ml",
                         Preco = 5.00m,
-                        PossuiPreparo = false
                     },
                     new Models.CardapioItem
                     {
@@ -47,7 +45,6 @@ namespace Comanda.Api
                         Titulo = "Pizza Calabresa",
                         Descricao = "Pizza de calabresa com cebola",
                         Preco = 35.00m,
-                        PossuiPreparo = true
                     }
                 );
             modelBuilder.Entity<Models.Mesa>()

@@ -26,9 +26,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Configura o middleware CORS
+
+app.UseCors("MinhaPolitica");
+
 // criar o banco de dados
 // criar um escopo usado para obter instancias de variaveis
-using(var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     // obtem um objeto do banco de dados 
     var db = scope.ServiceProvider.GetRequiredService<ComandasDBContext>();
@@ -42,7 +46,6 @@ using(var scope = app.Services.CreateScope())
 app.UseSwagger();
     app.UseSwaggerUI();
 //}
-app.UseCors("MinhaPolitica");
 
 app.UseHttpsRedirection();
 

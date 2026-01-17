@@ -2,8 +2,8 @@
 {
     public class CardapioItemCreateRequest
     {
-        public string Titulo { get; set; } = default!;
-        public string Descricao { get; set; } = default!;
+        public string Titulo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
         public decimal Preco { get; set; }
         public bool PossuiPreparo { get; set; }
         public int? CategoriaCardapioId { get; set; }
